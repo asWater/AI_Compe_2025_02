@@ -1,0 +1,9 @@
+.ipynb_checkpoints/*
+_Overview
+data/*
+!data/.gitkeep
+submission/*
+!submission/.gitkeep
+venv202502/*
+data.zip
+
