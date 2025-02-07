@@ -6,6 +6,10 @@ import numpy as np
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import roc_auc_score, roc_curve
 from sklearn.ensemble import RandomForestClassifier
+from sklearn.neural_network import MLPClassifier
+from sklearn.svm import SVC
+from sklearn.tree import DecisionTreeClassifier
+
 
 TEST_CSV = "data/test.csv"
 TRAIN_CSV = "data/train.csv"
@@ -44,7 +48,7 @@ for _col in log_col:
     # changing the column name to merge
     log_stats.columns = ["line", "batch_count"] + [f"{_col}_{_stat}" for _stat in stats_col ]
     
-    # Adding train, test to the static value in order to connect with the rank
+    # Adding train, test to the static value (log_stats) in order to connect with the rank
     # Merging datasets "train" and "logs_stats" by "line" and "batch_count"
     train = pd.merge(train, log_stats, on=["line", "batch_count"])
     test = pd.merge(test, log_stats, on=["line", "batch_count"])
@@ -61,8 +65,11 @@ feat_col = train.drop(["product_id", "rank"], axis=1).columns
 #     乱数シードを固定して常に同じように分割されるようにする必要がある。
 x_train, x_valid, y_train, y_valid = train_test_split(train[feat_col], train["rank"], test_size=0.2, random_state=42)
 
-#
-model = RandomForestClassifier()
+# Classifier
+model = RandomForestClassifier(class_weight='balanced') # >>> Score: 0.76
+#model = DecisionTreeClassifier() # >>> Score: 0.61
+#model = MLPClassifier() # >>> Score: 0.63
+
 # Training the model
 model.fit(x_train, y_train)
 
@@ -80,6 +87,7 @@ print(mylist[:,1])
 => ['2nd Col' 'B' 'E']
 '''
 y_pred = model.predict_proba(x_valid)[:,1]
+#y_pred = model.predict(x_valid)[:,1]
 
 # ROCは Receiver operating characteristic（受信者操作特性）、
 # AUCは Area under the curve の略で、Area under an ROC curve（ROC曲線下の面積）をROC-AUC
@@ -99,9 +107,9 @@ plt.plot(fpr, tpr, label="ROC curve (area = xxx)")
 plt.show()
 
 # Creating a submission file
-#y_test = model.predict_proba(test[feat_col])[:,1]
-#sub["prediction"] = y_test
-#sub.to_csv(Path("submission") / "submission_tutorial_suyama.csv")
+y_test = model.predict_proba(test[feat_col])[:,1]
+sub["prediction"] = y_test
+sub.to_csv(Path("submission") / "submission_tutorial_suyama.csv")
 
 
 
