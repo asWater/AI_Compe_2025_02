@@ -9,6 +9,7 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.neural_network import MLPClassifier
 from sklearn.svm import SVC
 from sklearn.tree import DecisionTreeClassifier
+from sklearn.ensemble import GradientBoostingClassifier
 
 
 TEST_CSV = "data/test.csv"
@@ -65,8 +66,19 @@ feat_col = train.drop(["product_id", "rank"], axis=1).columns
 #     乱数シードを固定して常に同じように分割されるようにする必要がある。
 x_train, x_valid, y_train, y_valid = train_test_split(train[feat_col], train["rank"], test_size=0.2, random_state=42)
 
-# Classifier
-model = RandomForestClassifier(class_weight='balanced') # >>> Score: 0.76
+# Classifiers
+'''
+class sklearn.ensemble.GradientBoostingClassifier
+(*, loss='log_loss', learning_rate=0.1, n_estimators=100, subsample=1.0, criterion='friedman_mse', 
+min_samples_split=2, min_samples_leaf=1, min_weight_fraction_leaf=0.0, max_depth=3, 
+min_impurity_decrease=0.0, init=None, random_state=None, max_features=None, verbose=0, 
+max_leaf_nodes=None, warm_start=False, validation_fraction=0.1, n_iter_no_change=None, 
+tol=0.0001, ccp_alpha=0.0)
+'''
+model = GradientBoostingClassifier(max_depth=5) # >>> Score: 0.826
+#model = GradientBoostingClassifier() # >>> Score: 0.81
+#model = RandomForestClassifier(n_estimators=100, class_weight='balanced', criterion='log_loss', random_state=42) # >>> Score: 0.76
+#model = RandomForestClassifier(class_weight='balanced') # >>> Score: 0.76
 #model = DecisionTreeClassifier() # >>> Score: 0.61
 #model = MLPClassifier() # >>> Score: 0.63
 

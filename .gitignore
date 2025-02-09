@@ -6,4 +6,5 @@ submission/*
 !submission/.gitkeep
 venv202502/*
 data.zip
-
+data_temp/*
+!data_temp/.gitkeep

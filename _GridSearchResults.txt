@@ -1,0 +1,44 @@
+search_gs = {
+  #"n_estimators": [None, 150, 200],
+  "criterion": ["gini", "entropy", "log_loss"],
+  "class_weight": [None, "balanced"]
+}
+
+==> {'class_weight': None, 'criterion': 'log_loss'}
+
+-----------------------------------------
+
+search_gs = {
+  "n_estimators": [100, 120],
+  "criterion": ["gini", "entropy", "log_loss"],
+  "class_weight": [None, "balanced"]
+}
+
+==> {'class_weight': 'balanced', 'criterion': 'log_loss', 'n_estimators': 100}
+
+-----------------------------------------
+
+# For GradientBoostingClassifier
+search_gs = {
+  "loss": ["log_loss", "exponential"],
+  "n_estimators": [100, 120],
+  "max_depth": [3, 5],
+  "min_samples_split": [2, 3],
+  "max_leaf_nodes": [None, 10],
+  "min_samples_leaf": [1, 2]
+}
+
+==> {'loss': 'log_loss', 'max_depth': 5, 'max_leaf_nodes': None, 'min_samples_leaf': 1, 'min_samples_split': 2, 'n_estimators': 100}
+
+-----------------------------------------
+
+search_gs = {
+  "learning_rate": [0.1, 0.2],
+  "n_estimators": [100, 150],
+  "max_depth": [None, 5],
+}
+
+==> {'learning_rate': 0.1, 'max_depth': 5, 'n_estimators': 100}
+
+-----------------------------------------
+

@@ -9,6 +9,7 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.neural_network import MLPClassifier
 from sklearn.svm import SVC
 from sklearn.tree import DecisionTreeClassifier
+from sklearn.ensemble import GradientBoostingClassifier
 
 from sklearn.model_selection import GridSearchCV
 
@@ -67,12 +68,14 @@ feat_col = train.drop(["product_id", "rank"], axis=1).columns
 x_train, x_valid, y_train, y_valid = train_test_split(train[feat_col], train["rank"], test_size=0.2, random_state=42)
 
 # Classifier
-model = RandomForestClassifier() 
+model = GradientBoostingClassifier()
+#model = RandomForestClassifier() 
 #model = RandomForestClassifier(class_weight='balanced') # >>> Score: 0.76
 #model = DecisionTreeClassifier() # >>> Score: 0.61
 #model = MLPClassifier() # >>> Score: 0.63
 
 '''
+==== < About RandomForestClassifier >============================================================
 REF: https://qiita.com/hara_tatsu/items/581db994ec8866afe8f8
 
 [ n_estimators ]
@@ -107,14 +110,110 @@ REF: https://qiita.com/hara_tatsu/items/581db994ec8866afe8f8
 決定木の分割後に葉に必要となってくるサンプル数
 整数または小数を指定 (デフォルト: 1)
 
+
+=== < About GradientBoostingClassifier > =======================================================
+class sklearn.ensemble.GradientBoostingClassifier
+(*, loss='log_loss', learning_rate=0.1, n_estimators=100, subsample=1.0, criterion='friedman_mse', 
+min_samples_split=2, min_samples_leaf=1, min_weight_fraction_leaf=0.0, max_depth=3, 
+min_impurity_decrease=0.0, init=None, random_state=None, max_features=None, verbose=0, 
+max_leaf_nodes=None, warm_start=False, validation_fraction=0.1, n_iter_no_change=None, 
+tol=0.0001, ccp_alpha=0.0)
+
+
+loss: {'log_loss', 'exponential'}, default='log_loss'
+> The loss function to be optimized. 'log_loss' refers to binomial and multinomial deviance, 
+  the same as used in logistic regression. 
+  It is a good choice for classification with probabilistic outputs. 
+  For loss 'exponential', gradient boosting recovers the AdaBoost algorithm.
+
+learning_rate: float, default=0.1
+> Learning rate shrinks the contribution of each tree by learning_rate. 
+  There is a trade-off between learning_rate and n_estimators. 
+  Values must be in the range [0.0, inf).
+
+n_estimators: int, default=100
+> The number of boosting stages to perform. 
+  Gradient boosting is fairly robust to over-fitting 
+  so a large number usually results in better performance. 
+  Values must be in the range [1, inf).
+
+subsample: float, default=1.0
+> The fraction of samples to be used for fitting the individual base learners. 
+  If smaller than 1.0 this results in Stochastic Gradient Boosting. 
+  subsample interacts with the parameter n_estimators. 
+  Choosing subsample < 1.0 leads to a reduction of variance and an increase in bias. 
+  Values must be in the range (0.0, 1.0].
+
+criterion{'friedman_mse', 'squared_error'}, default='friedman_mse'
+> The function to measure the quality of a split. 
+  Supported criteria are 'friedman_mse' for the mean squared error with improvement score by Friedman, 
+  'squared_error' for mean squared error. 
+  The default value of 'friedman_mse' is generally the best as it can provide a better approximation 
+  in some cases.
+
+min_samples_split: int or float, default=2
+> The minimum number of samples required to split an internal node:
+  If int, values must be in the range [2, inf).
+  If float, values must be in the range (0.0, 1.0] and 
+  min_samples_split will be ceil(min_samples_split * n_samples).
+
+min_samples_leaf: int or float, default=1
+> The minimum number of samples required to be at a leaf node. 
+  A split point at any depth will only be considered 
+  if it leaves at least min_samples_leaf training samples in each of the left and right branches. 
+  This may have the effect of smoothing the model, especially in regression.
+  If int, values must be in the range [1, inf).
+  If float, values must be in the range (0.0, 1.0) and min_samples_leaf will be ceil
+  (min_samples_leaf * n_samples).
+
+min_weight_fraction_leaf: float, default=0.0
+> The minimum weighted fraction of the sum total of weights (of all the input samples) 
+  required to be at a leaf node. 
+  Samples have equal weight when sample_weight is not provided. 
+  Values must be in the range [0.0, 0.5].
+
+max_depth: int or None, default=3
+> Maximum depth of the individual regression estimators. 
+  The maximum depth limits the number of nodes in the tree. 
+  Tune this parameter for best performance; 
+  the best value depends on the interaction of the input variables. 
+  If None, then nodes are expanded until all leaves are pure or until all leaves contain 
+  less than min_samples_split samples. 
+  If int, values must be in the range [1, inf).
+
+min_impurity_decrease: float, default=0.0
+> A node will be split if this split induces a decrease of the impurity greater than or equal 
+  to this value. 
+  Values must be in the range [0.0, inf).
+
+max_leaf_nodes: int, default=None
+> Grow trees with max_leaf_nodes in best-first fashion. 
+  Best nodes are defined as relative reduction in impurity. 
+  Values must be in the range [2, inf). 
+  If None, then unlimited number of leaf nodes.
+
 '''
 
 # 検証したいパラメータの指定
+# For RandomForestClassifier
+'''
 search_gs = {
-  "n_estimators": [None, 150, 200],
+  "n_estimators": [100, 120],
   "criterion": ["gini", "entropy", "log_loss"],
   "class_weight": [None, "balanced"]
 }
+'''
+# For GradientBoostingClassifier
+search_gs = {
+  "learning_rate": [0.1, 0.2],
+  #"loss": ["log_loss", "exponential"],
+  "n_estimators": [100, 150],
+  "max_depth": [None, 5],
+  #"min_samples_split": [2, 3],
+  #"max_leaf_nodes": [None, 10],
+  #"min_samples_leaf": [1, 2]
+}
+
 
 gs = GridSearchCV(model, search_gs, cv=5)
 
