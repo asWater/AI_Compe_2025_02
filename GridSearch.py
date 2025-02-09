@@ -205,10 +205,10 @@ search_gs = {
 '''
 # For GradientBoostingClassifier
 search_gs = {
-  "learning_rate": [0.1, 0.2],
+  #"learning_rate": [0.1, 0.2],
   #"loss": ["log_loss", "exponential"],
-  "n_estimators": [100, 150],
-  "max_depth": [None, 5],
+  #"n_estimators": [100, 150],
+  "max_depth": [5, 7, 9],
   #"min_samples_split": [2, 3],
   #"max_leaf_nodes": [None, 10],
   #"min_samples_leaf": [1, 2]
