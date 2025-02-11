@@ -51,3 +51,48 @@ search_gs = {
 ==> {'max_depth': 5}
 
 -----------------------------------------
+
+# For M:LPClassifier
+search_gs = {
+    "solver": ["adam", "sgd", "lbfgs"],
+    "hidden_layer_sizes": [(100,), (200,)],
+    "max_iter": [200, 300, 500],
+}
+
+==> {'hidden_layer_sizes': (200,), 'max_iter': 200, 'solver': 'sgd'}
+
+-----------------------------------------
+
+# For M:LPClassifier
+search_gs = {
+    #"solver": ["adam", "sgd", "lbfgs"],
+    "solver": ["adam", "sgd"],
+    "hidden_layer_sizes": [(200,), (300,), (400,)],
+    #"max_iter": [200, 300, 500],
+}
+
+==> {'hidden_layer_sizes': (200,), 'solver': 'sgd'}
+
+-----------------------------------------
+
+# For lgb.LGBMClassifier
+
+lgbParams = {
+    'objective': 'binary',
+    'num_iterations': 1000,
+    'learning_rate': 0.02,
+    #'early_stopping_round': 100,
+    'seed': 42,
+}
+>>> Score: 0.8388599605388108
+
+-> 'learning_rate': 0.01,
+>>> Score: 0.8382469833108276
+
+-> 'learning_rate': 0.1,
+>>> Score: 0.825678661977298
+
+-> 'learning_rate': 0.03,
+>>> Score: 0.8392931300038415
+
+

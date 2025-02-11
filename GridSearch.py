@@ -10,6 +10,7 @@ from sklearn.neural_network import MLPClassifier
 from sklearn.svm import SVC
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.ensemble import GradientBoostingClassifier
+import lightgbm as lgb
 
 from sklearn.model_selection import GridSearchCV
 
@@ -68,11 +69,11 @@ feat_col = train.drop(["product_id", "rank"], axis=1).columns
 x_train, x_valid, y_train, y_valid = train_test_split(train[feat_col], train["rank"], test_size=0.2, random_state=42)
 
 # Classifier
-model = GradientBoostingClassifier()
+#model = GradientBoostingClassifier()
 #model = RandomForestClassifier() 
 #model = RandomForestClassifier(class_weight='balanced') # >>> Score: 0.76
 #model = DecisionTreeClassifier() # >>> Score: 0.61
-#model = MLPClassifier() # >>> Score: 0.63
+model = MLPClassifier() # >>> Score: 0.63
 
 '''
 ==== < About RandomForestClassifier >============================================================
@@ -195,23 +196,33 @@ max_leaf_nodes: int, default=None
 '''
 
 # 検証したいパラメータの指定
-# For RandomForestClassifier
 '''
+# For RandomForestClassifier
 search_gs = {
   "n_estimators": [100, 120],
   "criterion": ["gini", "entropy", "log_loss"],
   "class_weight": [None, "balanced"]
 }
-'''
+
 # For GradientBoostingClassifier
 search_gs = {
-  #"learning_rate": [0.1, 0.2],
+  "learning_rate": [0.01, 0.05, 0.1],
   #"loss": ["log_loss", "exponential"],
   #"n_estimators": [100, 150],
-  "max_depth": [5, 7, 9],
+  #"max_depth": [5, 7, 9],
   #"min_samples_split": [2, 3],
   #"max_leaf_nodes": [None, 10],
   #"min_samples_leaf": [1, 2]
+}
+'''
+
+# For M:LPClassifier
+search_gs = {
+    #"solver": ["adam", "sgd", "lbfgs"],
+    "solver": ["adam", "sgd"],
+    #"hidden_layer_sizes": [(200,), (300,), (400,)],
+    #"max_iter": [200, 300, 500],
+    "alpha": [0.0001, 0.001, 0.01],
 }
 
 
