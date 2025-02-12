@@ -158,7 +158,7 @@ score = roc_auc_score(y_valid, y_pred)
 print(f">>> Prediction: {y_pred}")
 print(f">>> Score: {score}")
 
-'''
+#'''
 # FPR（False Positive Rate: 偽陽性率）: 陰性を間違って陽性と判定した割合 (小さい方が良い)
 # TPR（True Positive Rate: 真陽性率）: 陽性を正しく陽性と判定した割合 (大きいほうが良い)
 # 閾値: Decreasing thresholds on the decision function used to compute fpr and tpr. 
@@ -172,6 +172,6 @@ plt.show()
 y_test = model.predict_proba(test[feat_col])[:,1]
 sub["prediction"] = y_test
 sub.to_csv(Path("submission") / "submission_tutorial_suyama.csv")
-'''
+#'''
 
 
