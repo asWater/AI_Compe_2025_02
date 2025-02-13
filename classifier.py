@@ -18,6 +18,8 @@ from sklearn.tree import DecisionTreeClassifier
 from sklearn.ensemble import GradientBoostingClassifier
 import lightgbm as lgb
 
+
+# Constants
 TEST_CSV = "data/test.csv"
 TRAIN_CSV = "data/train.csv"
 MACHINE_LOG_CSV = "data/machine_log.csv"
@@ -175,59 +177,121 @@ def predict(
         pd.DataFrame( {"prediction": pred.mean( axis=1 )} ),
     ], axis=1)
 
-    print("Done")
+    print(">>> Prediction is finished <<<")
 
     return pred
 #==== END of FUNC: predict =========================================================================
 
+#===================================================================================================
+# FUNC: ope_chara
+#===================================================================================================
+def ope_chara(train_df, test_df, log_df):
+    log_col = [ 
+        #"maintenance_count", 
+        "temperature_1", 
+        "temperature_2", 
+        "temperature_3", 
+        "pressure" 
+    ]
 
-#################################################
+    stats_col = [ "mean", "std", "max", "min" ]
+
+    for _col in log_col:
+        # static vlume for line, batch_count
+        # Gropu by "line" & "batch_count", Aggregated by "mean", "std", "max", "min" for columns listed in log_col
+        # i.e. Only the data of "temperature_1", "temperature_2", "temperature_3", "pressure" are stored in log_stats
+        # ref: https://pycarnival.com/agg_pandas/
+        # groupbyメソッドにより、データフレームはグループ化した列の値に基づいて新しいインデックスが設定されます。
+        # しかし、この新しいインデックスは、後続のデータ操作や分析にとって必ずしも便利ではありません。
+        # ここでreset_indexメソッドが役立ちます。reset_indexメソッドにより、インデックスは連続した整数にリセットされ、
+        # グループ化した列は通常の列に戻ります。
+        # この組み合わせにより、データの集約とインデックスの管理が一度に行え、データ分析がより効率的になります。
+        # また、結果のデータフレームは、他のPandasのメソッドや機能と組み合わせてさらに操作や分析を行うことが可能です。
+        # このように、groupbyとreset_indexの組み合わせは、Pandasを使用したデータ分析において非常に強力なツールとなります。
+
+        #log_stats = log.groupby(["line", "batch_count"])[_col].agg(stats_col).reset_index()
+        
+        # changing the column name to merge
+        #log_stats.columns = ["line", "batch_count"] + [ f"{_col}_{_stat}" for _stat in stats_col ]
+
+        
+        if _col == "maintenance_count":
+            log_stats = log_df.groupby(["line", "batch_count"])[_col].agg("sum").reset_index()
+            log_stats.columns = ["line", "batch_count", f"{_col}_sum"]
+        else:
+            log_stats = log_df.groupby(["line", "batch_count"])[_col].agg(stats_col).reset_index()
+            log_stats.columns = ["line", "batch_count"] + [ f"{_col}_{_stat}" for _stat in stats_col ]
+        
+        
+        # Adding train, test to the static value (log_stats) in order to connect with the rank
+        # Merging datasets "train" and "logs_stats" by "line" and "batch_count"
+        train_df = pd.merge(train_df, log_stats, on=["line", "batch_count"])
+        test_df = pd.merge(test_df, log_stats, on=["line", "batch_count"])
+
+    return train_df, test_df
+
+#==== END of FUNC: ope_chara =========================================================================
+
+#===================================================================================================
+# FUNC: create_train_data
+#===================================================================================================
+def create_train_data():
+    # Reading data
+    train = pd.read_csv(TRAIN_CSV)
+    test = pd.read_csv(TEST_CSV)
+    log = pd.read_csv(MACHINE_LOG_CSV)
+    #sub = pd.read_csv(SUB_CSV)
+
+    # Reducing the memory, if possible    
+    train = reduce_mem_usage(train)
+    test = reduce_mem_usage(test)
+    log = reduce_mem_usage(log)
+
+    # Predict with replacing "D" with 1
+    label_dict = {"A": 0, "B": 0, "C": 0, "D": 1}
+    train["rank"] = train["rank"].map(label_dict)
+
+    # Maintenace in every 1000 batches, so converting remaining by dividing by 1000
+    train["batch_count_men"] = train["batch_count"] % 1000
+    test["batch_count_men"] = test["batch_count"] % 1000
+
+    # Characteristic Operation
+    train, test = ope_chara(train, test, log)
+
+    # Checking the final train data
+    print("-"*20, "Final Train Data", "-"*20)
+    print(train.info())
+    print(train.head())
+    print( train.shape )
+
+    return train, test
+
+#==== END of FUNC: create_train_data =======================================================================
+
+############################################################################################################
 # Main Procedure
-#################################################
-# Reading data
-train = pd.read_csv(TRAIN_CSV)
-test = pd.read_csv(TEST_CSV)
-log = pd.read_csv(MACHINE_LOG_CSV)
-#sub = pd.read_csv(SUB_CSV)
-
-# Reducing the memory, if possible    
-train = reduce_mem_usage(train)
-test = reduce_mem_usage(test)
-
-#Predict with replacing "D" with 1
-label_dict = {"A": 0, "B": 0, "C": 0, "D": 1}
-train["rank"] = train["rank"].map(label_dict)
-
-# Maintenace in every 1000 batches, so converting remaining by dividing by 1000
-train["batch_count_men"] = train["batch_count"] % 1000
-test["batch_count_men"] = test["batch_count"] % 1000
+############################################################################################################
+# Creating the training / test data
+train, test = create_train_data()
 
 # Creating datasets for training
 x_train = train.drop(columns=["product_id", "rank"])
 y_train = train["rank"]
 id_train = train["product_id"]
 
+# Converting category variants to category type
+for col in x_train.columns:
+    if x_train[col].dtype == "0":
+        print( "Category variant is found")
+        #x_train[col] = x_train[col].astype("category")
+
 # Creating datasets for prediction
 x_test = test.drop( columns=["product_id"])
 id_test = test[ ["product_id"] ]
 
-
-train.info()
-train.head()
-print( train.shape )
-
 print( f"Mean: {y_train.mean():.4f}" )
 print( y_train.value_counts() )
 
-'''
-cv = list( StratifiedGroupKFold(n_splits=5, shuffle=True, random_state=42).split(x_train, y_train) )
-
-# Confirmation of index: Learning data for fold=0
-print("index(train): ", cv[0][0])
-
-# Confirmation of index: Veridation data for fold=0
-print("index(valid): ", cv[0][1])
-'''
 
 params = {
     "boosting_type": "gbdt",
@@ -239,6 +303,24 @@ params = {
     "random_state": 42,
     "importance_type": "gain",
 }
+
+'''
+params = {
+    'num_leaves': 26, 
+    'learning_rate': 0.04338127960435278, 
+    #'n_estimators': 2370, 
+    #'min_child_samples': 130, 
+    #'min_sum_hessian_in_leaf': 0.00047200940421496815, 
+    'feature_fraction': 0.851005314803907, 
+    #'bagging_fraction': 0.9007896282436193, 
+    #'lambda_l1': 2.288079221544728, 
+    #'lambda_l2': 0.5136720890389505, 
+    'boosting_type': 'gbdt', 
+    'objective': 'binary', 
+    'metric': 'auc', 
+    #'bagging_freq': 1
+}  
+'''
 
 # Training
 train_oof, imp, metrics = train_data ( 
@@ -265,9 +347,8 @@ test_pred = predict(
 # 第一引数に正解クラス、第二引数に予測スコアのリストや配列をそれぞれ指定する。
 #score = roc_auc_score(x_train, test_pred)
 
-
 # Submission of prediction results
-#test_pred.to_csv("submission/submission_new.csv")
+test_pred.to_csv("submission/submission_new.csv")
 
 '''
 # Creating a submission file
