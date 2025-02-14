@@ -28,7 +28,7 @@ params_base = {
     "metric": "auc",
     #"learning_rate": 0.03,
     #"n_estimators": 1000, # Default: 100
-    "bagging_freq": 1,
+    #"bagging_freq": 1,
 }
 
 # 目的関数の定義
@@ -42,8 +42,8 @@ def objective(trial):
         "min_sum_hessian_in_leaf": trial.suggest_float("min_sum_hessian_in_leaf", 1e-5, 1e-2, log=True),
         "feature_fraction": trial.suggest_float("feature_fraction", 0.5, 1.0),
         "bagging_fraction": trial.suggest_float("bagging_fraction", 0.5, 1.0),
-        "lambda_l1": trial.suggest_float("lambda_l1", 1e-2, 1e+2, log=True),
-        "lambda_l2": trial.suggest_float("lambda_l2", 1e-2, 1e+2, log=True),
+        "reg_alpha": trial.suggest_float("reg_alpha", 1e-2, 1e+2, log=True),
+        "reg_lambda": trial.suggest_float("reg_lambda", 1e-2, 1e+2, log=True),
     }
     params_tuning.update(params_base)
     

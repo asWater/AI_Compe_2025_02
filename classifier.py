@@ -5,6 +5,7 @@ import numpy as np
 import pickle
 import re
 import gc
+import math
 
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import roc_auc_score, roc_curve
@@ -24,6 +25,32 @@ TEST_CSV = "data/test.csv"
 TRAIN_CSV = "data/train.csv"
 MACHINE_LOG_CSV = "data/machine_log.csv"
 SUB_CSV = "data/sample_submission.csv"
+
+import math
+
+#===================================================================================================
+# FUNC: get_row_num_matrix
+#===================================================================================================
+def get_row_num_matrix( maxSlotsInRow, slotId ):
+  if (slotId % maxSlotsInRow) == 0:
+    row_num = math.floor( (slotId / maxSlotsInRow) )
+  else:
+    row_num = math.floor(slotId / maxSlotsInRow) + 1 
+
+  return row_num
+
+#===================================================================================================
+# FUNC: get_col_num_matrix
+#===================================================================================================
+def get_col_num_matrix( maxSlotsInRow, slotId ):
+
+  if (slotId % maxSlotsInRow) == 0:
+    col_num = maxSlotsInRow
+  else:
+    row_num = math.floor(slotId / maxSlotsInRow)
+    col_num = slotId - (row_num * maxSlotsInRow)
+  
+  return col_num
 
 
 #===================================================================================================
@@ -228,6 +255,29 @@ def ope_chara(train_df, test_df, log_df):
         train_df = pd.merge(train_df, log_stats, on=["line", "batch_count"])
         test_df = pd.merge(test_df, log_stats, on=["line", "batch_count"])
 
+
+    MAX_SLOTS_IN_ROW = 4
+    train_df["pos_row"] = train_df.apply( lambda x: get_row_num_matrix(MAX_SLOTS_IN_ROW, x["position"]), axis=1 )
+    train_df["pos_col"] = train_df.apply( lambda x: get_col_num_matrix(MAX_SLOTS_IN_ROW, x["position"]), axis=1 )
+    train_df["line_row"] = train_df["line"] + train_df["pos_row"]
+    train_df["line_col"] = train_df["line"] + train_df["pos_col"]
+    train_df["line_tray_row"] = train_df["line"] + train_df["pos_row"] + train_df["tray_no"]
+    train_df["line_tray_col"] = train_df["line"] + train_df["pos_col"] + train_df["tray_no"]
+    train_df["tray_row"] = train_df["tray_no"] + train_df["pos_row"]
+    train_df["tray_col"] = train_df["tray_no"] + train_df["pos_col"]
+    train_df["line_tray"] = train_df["line"] * train_df["tray_no"]
+
+    test_df["pos_row"] = test_df.apply( lambda x: get_row_num_matrix(MAX_SLOTS_IN_ROW, x["position"]), axis=1 )
+    test_df["pos_col"] = test_df.apply( lambda x: get_col_num_matrix(MAX_SLOTS_IN_ROW, x["position"]), axis=1 )
+    test_df["line_row"] = test_df["line"] + test_df["pos_row"]
+    test_df["line_col"] = test_df["line"] + test_df["pos_col"]
+    test_df["line_tray_row"] = test_df["line"] + test_df["pos_row"] + test_df["tray_no"]
+    test_df["line_tray_col"] = test_df["line"] + test_df["pos_col"] + test_df["tray_no"]
+    test_df["tray_row"] = test_df["tray_no"] + test_df["pos_row"]
+    test_df["tray_col"] = test_df["tray_no"] + test_df["pos_col"]
+    test_df["line_tray"] = test_df["line"] * test_df["tray_no"]
+
+
     return train_df, test_df
 
 #==== END of FUNC: ope_chara =========================================================================
@@ -297,9 +347,9 @@ params = {
     "boosting_type": "gbdt",
     "objective": "binary",
     "metric": "auc",
-    "learning_rate": 0.03,
-    "num_leaves": 31, # Default: 31
-    "n_estimators": 1000, # Default: 100
+    "learning_rate": 0.02,
+    "num_leaves": 63, # Default: 31
+    "n_estimators": 800, # Default: 100
     "random_state": 42,
     "importance_type": "gain",
 }
