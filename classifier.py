@@ -221,7 +221,7 @@ def ope_chara(train_df, test_df, log_df):
         "pressure" 
     ]
 
-    stats_col = [ "mean", "std", "max", "min" ]
+    stats_col = [ "mean", "std", "max", "min", "median", "first" ]
 
     for _col in log_col:
         # static vlume for line, batch_count
@@ -257,24 +257,49 @@ def ope_chara(train_df, test_df, log_df):
 
 
     MAX_SLOTS_IN_ROW = 4
+    #=== TRAINING DATA ====================
     train_df["pos_row"] = train_df.apply( lambda x: get_row_num_matrix(MAX_SLOTS_IN_ROW, x["position"]), axis=1 )
     train_df["pos_col"] = train_df.apply( lambda x: get_col_num_matrix(MAX_SLOTS_IN_ROW, x["position"]), axis=1 )
-    train_df["line_row"] = train_df["line"] + train_df["pos_row"]
-    train_df["line_col"] = train_df["line"] + train_df["pos_col"]
-    train_df["line_tray_row"] = train_df["line"] + train_df["pos_row"] + train_df["tray_no"]
-    train_df["line_tray_col"] = train_df["line"] + train_df["pos_col"] + train_df["tray_no"]
-    train_df["tray_row"] = train_df["tray_no"] + train_df["pos_row"]
-    train_df["tray_col"] = train_df["tray_no"] + train_df["pos_col"]
+    
+    # +
+    #train_df["line_row"] = train_df["line"] + train_df["pos_row"]
+    #train_df["line_col"] = train_df["line"] + train_df["pos_col"]
+    #train_df["line_tray_row"] = train_df["line"] + train_df["pos_row"] + train_df["tray_no"]
+    #train_df["line_tray_col"] = train_df["line"] + train_df["pos_col"] + train_df["tray_no"]
+    #train_df["tray_row"] = train_df["tray_no"] + train_df["pos_row"]
+    #train_df["tray_col"] = train_df["tray_no"] + train_df["pos_col"]
+
+    # X
+    train_df["line_row"] = train_df["line"] * train_df["pos_row"]
+    train_df["line_col"] = train_df["line"] * train_df["pos_col"]
+    train_df["line_tray_row"] = train_df["line"] * train_df["pos_row"] * train_df["tray_no"]
+    train_df["line_tray_col"] = train_df["line"] * train_df["pos_col"] * train_df["tray_no"]
+    train_df["tray_row"] = train_df["tray_no"] * train_df["pos_row"]
+    train_df["tray_col"] = train_df["tray_no"] * train_df["pos_col"]
+
     train_df["line_tray"] = train_df["line"] * train_df["tray_no"]
 
+
+    #=== TEST DATA ====================
     test_df["pos_row"] = test_df.apply( lambda x: get_row_num_matrix(MAX_SLOTS_IN_ROW, x["position"]), axis=1 )
     test_df["pos_col"] = test_df.apply( lambda x: get_col_num_matrix(MAX_SLOTS_IN_ROW, x["position"]), axis=1 )
-    test_df["line_row"] = test_df["line"] + test_df["pos_row"]
-    test_df["line_col"] = test_df["line"] + test_df["pos_col"]
-    test_df["line_tray_row"] = test_df["line"] + test_df["pos_row"] + test_df["tray_no"]
-    test_df["line_tray_col"] = test_df["line"] + test_df["pos_col"] + test_df["tray_no"]
-    test_df["tray_row"] = test_df["tray_no"] + test_df["pos_row"]
-    test_df["tray_col"] = test_df["tray_no"] + test_df["pos_col"]
+    
+    # +
+    #test_df["line_row"] = test_df["line"] + test_df["pos_row"]
+    #test_df["line_col"] = test_df["line"] + test_df["pos_col"]
+    #test_df["line_tray_row"] = test_df["line"] + test_df["pos_row"] + test_df["tray_no"]
+    #test_df["line_tray_col"] = test_df["line"] + test_df["pos_col"] + test_df["tray_no"]
+    #test_df["tray_row"] = test_df["tray_no"] + test_df["pos_row"]
+    #test_df["tray_col"] = test_df["tray_no"] + test_df["pos_col"]
+    
+    # X
+    test_df["line_row"] = test_df["line"] * test_df["pos_row"]
+    test_df["line_col"] = test_df["line"] * test_df["pos_col"]
+    test_df["line_tray_row"] = test_df["line"] * test_df["pos_row"] * test_df["tray_no"]
+    test_df["line_tray_col"] = test_df["line"] * test_df["pos_col"] * test_df["tray_no"]
+    test_df["tray_row"] = test_df["tray_no"] * test_df["pos_row"]
+    test_df["tray_col"] = test_df["tray_no"] * test_df["pos_col"]
+    
     test_df["line_tray"] = test_df["line"] * test_df["tray_no"]
 
 
@@ -347,29 +372,26 @@ params = {
     "boosting_type": "gbdt",
     "objective": "binary",
     "metric": "auc",
-    "learning_rate": 0.02,
-    "num_leaves": 63, # Default: 31
-    "n_estimators": 800, # Default: 100
-    "random_state": 42,
     "importance_type": "gain",
+    "random_state": 42,
+    "learning_rate": 0.02, # Default: 0.1
+    "num_leaves": 51, # Default: 31
+    "n_estimators": 780, # Default: 100
+    'min_child_samples': 280 # Default: 20
 }
 
 '''
 params = {
-    'num_leaves': 26, 
-    'learning_rate': 0.04338127960435278, 
-    #'n_estimators': 2370, 
-    #'min_child_samples': 130, 
-    #'min_sum_hessian_in_leaf': 0.00047200940421496815, 
-    'feature_fraction': 0.851005314803907, 
-    #'bagging_fraction': 0.9007896282436193, 
-    #'lambda_l1': 2.288079221544728, 
-    #'lambda_l2': 0.5136720890389505, 
-    'boosting_type': 'gbdt', 
-    'objective': 'binary', 
-    'metric': 'auc', 
-    #'bagging_freq': 1
-}  
+  'boosting_type': 'gbdt', 
+  'objective': 'binary', 
+  'metric': 'auc',
+  "importance_type": "gain",
+  "random_state": 42,
+  'num_leaves': 46, 
+  'learning_rate': 0.028324668170574198, 
+  'n_estimators': 3154, 
+  'min_child_samples': 140
+  }
 '''
 
 # Training

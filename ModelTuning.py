@@ -39,11 +39,11 @@ def objective(trial):
         "learning_rate": trial.suggest_float("learning_rate", 0.01, 0.1 ),
         "n_estimators": trial.suggest_int("n_estimators", 100, 10000 ),
         "min_child_samples": trial.suggest_int("min_child_samples", 5, 200),
-        "min_sum_hessian_in_leaf": trial.suggest_float("min_sum_hessian_in_leaf", 1e-5, 1e-2, log=True),
-        "feature_fraction": trial.suggest_float("feature_fraction", 0.5, 1.0),
-        "bagging_fraction": trial.suggest_float("bagging_fraction", 0.5, 1.0),
-        "reg_alpha": trial.suggest_float("reg_alpha", 1e-2, 1e+2, log=True),
-        "reg_lambda": trial.suggest_float("reg_lambda", 1e-2, 1e+2, log=True),
+        #"min_sum_hessian_in_leaf": trial.suggest_float("min_sum_hessian_in_leaf", 1e-5, 1e-2, log=True),
+        #"feature_fraction": trial.suggest_float("feature_fraction", 0.5, 1.0),
+        #"bagging_fraction": trial.suggest_float("bagging_fraction", 0.5, 1.0),
+        #"reg_alpha": trial.suggest_float("reg_alpha", 1e-2, 1e+2, log=True),
+        #"reg_lambda": trial.suggest_float("reg_lambda", 1e-2, 1e+2, log=True),
     }
     params_tuning.update(params_base)
     
