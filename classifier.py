@@ -214,14 +214,31 @@ def predict(
 #===================================================================================================
 def ope_chara(train_df, test_df, log_df):
     log_col = [ 
-        #"maintenance_count", 
+        "maintenance_count", 
         "temperature_1", 
         "temperature_2", 
         "temperature_3", 
         "pressure" 
     ]
 
-    stats_col = [ "mean", "std", "max", "min", "median", "first" ]
+    stats_col = [
+        #"sum", 
+        #"mean", 
+        #"std", 
+        #"max", 
+        #"min", 
+        "median", 
+        "first",
+    ]
+
+    stats_cols_specail = [
+        #"mean", 
+        #"std", 
+        #"max", 
+        #"min", 
+        "median", 
+        "first",
+    ]
 
     for _col in log_col:
         # static vlume for line, batch_count
@@ -242,9 +259,12 @@ def ope_chara(train_df, test_df, log_df):
         #log_stats.columns = ["line", "batch_count"] + [ f"{_col}_{_stat}" for _stat in stats_col ]
 
         
-        if _col == "maintenance_count":
+        if _col == "maintenance_count" or _col.startswith("temperature"):
             log_stats = log_df.groupby(["line", "batch_count"])[_col].agg("sum").reset_index()
             log_stats.columns = ["line", "batch_count", f"{_col}_sum"]
+        #elif _col == "pressure":
+        #    log_stats = log_df.groupby(["line", "batch_count"])[_col].agg(stats_cols_specail).reset_index()
+        #    log_stats.columns = ["line", "batch_count"] + [ f"{_col}_{_stat}" for _stat in stats_cols_specail ]
         else:
             log_stats = log_df.groupby(["line", "batch_count"])[_col].agg(stats_col).reset_index()
             log_stats.columns = ["line", "batch_count"] + [ f"{_col}_{_stat}" for _stat in stats_col ]
@@ -256,8 +276,8 @@ def ope_chara(train_df, test_df, log_df):
         test_df = pd.merge(test_df, log_stats, on=["line", "batch_count"])
 
 
-    train_df = add_more_charas( train_df, log_col)
-    test_df = add_more_charas( test_df, log_col)
+    train_df = add_more_charas( train_df, log_col )
+    test_df = add_more_charas( test_df, log_col )
 
     return train_df, test_df
 
@@ -285,10 +305,15 @@ def add_more_charas( df, log_cols):
     df["line_col"] = df["line"] * df["pos_col"]
     df["line_tray_row"] = df["line"] * df["pos_row"] * df["tray_no"]
     df["line_tray_col"] = df["line"] * df["pos_col"] * df["tray_no"]
-    df["tray_row"] = df["tray_no"] * df["pos_row"]
-    df["tray_col"] = df["tray_no"] * df["pos_col"]
+    #df["tray_row"] = df["tray_no"] * df["pos_row"]
+    #df["tray_col"] = df["tray_no"] * df["pos_col"]
 
     df["line_tray"] = df["line"] * df["tray_no"]
+
+    df["tray_no_even"] = df.apply( lambda x: 1 if x["tray_no"] % 2 == 0 else 0, axis=1 )
+    #df["batch_cnt_event"] = df.apply( lambda x: 1 if x["batch_count_men"] % 2 == 0 else 0, axis=1 )
+
+    #df["temp_all_sum_avg"] = ( df["temperature_1_sum"] + df["temperature_2_sum"] + df["temperature_3_sum"] ) / 3
     
     #for _col in log_cols:
     #    df[f"{_col}_max_min_diff"] = df[f"{_col}_max"] - df[f"{_col}_min"]
@@ -327,7 +352,7 @@ def create_train_data():
     # Checking the final train data
     print("-"*20, "Final Train Data", "-"*20)
     print(train.info())
-    print(train.head())
+    print(train.head().T)
     print( train.shape )
 
     return train, test
@@ -368,7 +393,9 @@ params = {
     "learning_rate": 0.02, # Default: 0.1
     "num_leaves": 51, # Default: 31
     "n_estimators": 780, # Default: 100
-    'min_child_samples': 280 # Default: 20
+    "min_child_samples": 280, # Default: 20,
+    #"min_child_weight": 0.1, # Default: 0.001 
+    #"class_weight": "balanced", # Default: None 
 }
 
 '''
