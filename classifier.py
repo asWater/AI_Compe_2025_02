@@ -256,56 +256,47 @@ def ope_chara(train_df, test_df, log_df):
         test_df = pd.merge(test_df, log_stats, on=["line", "batch_count"])
 
 
-    MAX_SLOTS_IN_ROW = 4
-    #=== TRAINING DATA ====================
-    train_df["pos_row"] = train_df.apply( lambda x: get_row_num_matrix(MAX_SLOTS_IN_ROW, x["position"]), axis=1 )
-    train_df["pos_col"] = train_df.apply( lambda x: get_col_num_matrix(MAX_SLOTS_IN_ROW, x["position"]), axis=1 )
-    
-    # +
-    #train_df["line_row"] = train_df["line"] + train_df["pos_row"]
-    #train_df["line_col"] = train_df["line"] + train_df["pos_col"]
-    #train_df["line_tray_row"] = train_df["line"] + train_df["pos_row"] + train_df["tray_no"]
-    #train_df["line_tray_col"] = train_df["line"] + train_df["pos_col"] + train_df["tray_no"]
-    #train_df["tray_row"] = train_df["tray_no"] + train_df["pos_row"]
-    #train_df["tray_col"] = train_df["tray_no"] + train_df["pos_col"]
-
-    # X
-    train_df["line_row"] = train_df["line"] * train_df["pos_row"]
-    train_df["line_col"] = train_df["line"] * train_df["pos_col"]
-    train_df["line_tray_row"] = train_df["line"] * train_df["pos_row"] * train_df["tray_no"]
-    train_df["line_tray_col"] = train_df["line"] * train_df["pos_col"] * train_df["tray_no"]
-    train_df["tray_row"] = train_df["tray_no"] * train_df["pos_row"]
-    train_df["tray_col"] = train_df["tray_no"] * train_df["pos_col"]
-
-    train_df["line_tray"] = train_df["line"] * train_df["tray_no"]
-
-
-    #=== TEST DATA ====================
-    test_df["pos_row"] = test_df.apply( lambda x: get_row_num_matrix(MAX_SLOTS_IN_ROW, x["position"]), axis=1 )
-    test_df["pos_col"] = test_df.apply( lambda x: get_col_num_matrix(MAX_SLOTS_IN_ROW, x["position"]), axis=1 )
-    
-    # +
-    #test_df["line_row"] = test_df["line"] + test_df["pos_row"]
-    #test_df["line_col"] = test_df["line"] + test_df["pos_col"]
-    #test_df["line_tray_row"] = test_df["line"] + test_df["pos_row"] + test_df["tray_no"]
-    #test_df["line_tray_col"] = test_df["line"] + test_df["pos_col"] + test_df["tray_no"]
-    #test_df["tray_row"] = test_df["tray_no"] + test_df["pos_row"]
-    #test_df["tray_col"] = test_df["tray_no"] + test_df["pos_col"]
-    
-    # X
-    test_df["line_row"] = test_df["line"] * test_df["pos_row"]
-    test_df["line_col"] = test_df["line"] * test_df["pos_col"]
-    test_df["line_tray_row"] = test_df["line"] * test_df["pos_row"] * test_df["tray_no"]
-    test_df["line_tray_col"] = test_df["line"] * test_df["pos_col"] * test_df["tray_no"]
-    test_df["tray_row"] = test_df["tray_no"] * test_df["pos_row"]
-    test_df["tray_col"] = test_df["tray_no"] * test_df["pos_col"]
-    
-    test_df["line_tray"] = test_df["line"] * test_df["tray_no"]
-
+    train_df = add_more_charas( train_df, log_col)
+    test_df = add_more_charas( test_df, log_col)
 
     return train_df, test_df
 
 #==== END of FUNC: ope_chara =========================================================================
+
+#===================================================================================================
+# FUNC: add_more_charas
+#===================================================================================================
+def add_more_charas( df, log_cols):
+    MAX_SLOTS_IN_ROW = 4
+    #=== TRAINING DATA ====================
+    df["pos_row"] = df.apply( lambda x: get_row_num_matrix(MAX_SLOTS_IN_ROW, x["position"]), axis=1 )
+    df["pos_col"] = df.apply( lambda x: get_col_num_matrix(MAX_SLOTS_IN_ROW, x["position"]), axis=1 )
+    
+    # +
+    #df["line_row"] = df["line"] + df["pos_row"]
+    #df["line_col"] = df["line"] + df["pos_col"]
+    #df["line_tray_row"] = df["line"] + df["pos_row"] + df["tray_no"]
+    #df["line_tray_col"] = df["line"] + df["pos_col"] + df["tray_no"]
+    #df["tray_row"] = df["tray_no"] + df["pos_row"]
+    #df["tray_col"] = df["tray_no"] + df["pos_col"]
+
+    # X
+    df["line_row"] = df["line"] * df["pos_row"]
+    df["line_col"] = df["line"] * df["pos_col"]
+    df["line_tray_row"] = df["line"] * df["pos_row"] * df["tray_no"]
+    df["line_tray_col"] = df["line"] * df["pos_col"] * df["tray_no"]
+    df["tray_row"] = df["tray_no"] * df["pos_row"]
+    df["tray_col"] = df["tray_no"] * df["pos_col"]
+
+    df["line_tray"] = df["line"] * df["tray_no"]
+    
+    #for _col in log_cols:
+    #    df[f"{_col}_max_min_diff"] = df[f"{_col}_max"] - df[f"{_col}_min"]
+
+    return df
+
+#==== END of FUNC: add_more_charas =================================================================
+
 
 #===================================================================================================
 # FUNC: create_train_data

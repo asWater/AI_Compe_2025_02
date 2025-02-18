@@ -316,18 +316,24 @@ lgbParams = {
 [CV] tr:0.96560.0007, va:0.8743+-0.0042
 [OOF] 0.8743
 
+
+
 ========================================
-{
-  'num_leaves': 27, 
-  'learning_rate': 0.010354667836685962, 
-  'n_estimators': 9944, 
-  'min_child_samples': 41, 
-  'min_sum_hessian_in_leaf': 0.002878217262417014, 
-  'feature_fraction': 0.5797852705838228, 
-  'bagging_fraction': 0.5661069811545256, 
-  'reg_alpha': 0.4055532082649955, 
-  'reg_lambda': 0.3096442909616998
+Best Params so far.
+
+params = {
+    "boosting_type": "gbdt",
+    "objective": "binary",
+    "metric": "auc",
+    "importance_type": "gain",
+    "random_state": 42,
+    "learning_rate": 0.02, # Default: 0.1
+    "num_leaves": 51, # Default: 31
+    "n_estimators": 780, # Default: 100
+    'min_child_samples': 280 # Default: 20
 }
+
+
 ==================== Param with base params ====================
 -------------------- acc(best)=0.8750 --------------------
 {
