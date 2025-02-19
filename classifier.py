@@ -214,7 +214,8 @@ def predict(
 #===================================================================================================
 def ope_chara(train_df, test_df, log_df):
     log_col = [ 
-        "maintenance_count", 
+        "maintenance_count",
+        #"batch_count",
         "temperature_1", 
         "temperature_2", 
         "temperature_3", 
@@ -223,15 +224,6 @@ def ope_chara(train_df, test_df, log_df):
 
     stats_col = [
         #"sum", 
-        #"mean", 
-        #"std", 
-        #"max", 
-        #"min", 
-        "median", 
-        "first",
-    ]
-
-    stats_cols_specail = [
         #"mean", 
         #"std", 
         #"max", 
@@ -257,24 +249,18 @@ def ope_chara(train_df, test_df, log_df):
         
         # changing the column name to merge
         #log_stats.columns = ["line", "batch_count"] + [ f"{_col}_{_stat}" for _stat in stats_col ]
-
         
-        if _col == "maintenance_count" or _col.startswith("temperature"):
-            log_stats = log_df.groupby(["line", "batch_count"])[_col].agg("sum").reset_index()
-            log_stats.columns = ["line", "batch_count", f"{_col}_sum"]
-        #elif _col == "pressure":
-        #    log_stats = log_df.groupby(["line", "batch_count"])[_col].agg(stats_cols_specail).reset_index()
-        #    log_stats.columns = ["line", "batch_count"] + [ f"{_col}_{_stat}" for _stat in stats_cols_specail ]
-        else:
+        if _col == "pressure":
             log_stats = log_df.groupby(["line", "batch_count"])[_col].agg(stats_col).reset_index()
             log_stats.columns = ["line", "batch_count"] + [ f"{_col}_{_stat}" for _stat in stats_col ]
-        
+        else:
+            log_stats = log_df.groupby(["line", "batch_count"])[_col].agg("sum").reset_index()
+            log_stats.columns = ["line", "batch_count", f"{_col}_sum"]
         
         # Adding train, test to the static value (log_stats) in order to connect with the rank
         # Merging datasets "train" and "logs_stats" by "line" and "batch_count"
         train_df = pd.merge(train_df, log_stats, on=["line", "batch_count"])
         test_df = pd.merge(test_df, log_stats, on=["line", "batch_count"])
-
 
     train_df = add_more_charas( train_df, log_col )
     test_df = add_more_charas( test_df, log_col )
@@ -309,14 +295,21 @@ def add_more_charas( df, log_cols):
     #df["tray_col"] = df["tray_no"] * df["pos_col"]
 
     df["line_tray"] = df["line"] * df["tray_no"]
+    #df["row_x_col"] = df["pos_row"] * df["pos_col"]
+
+    #df["press_median_first"] = df["pressure_median"] - df["pressure_first"]
 
     df["tray_no_even"] = df.apply( lambda x: 1 if x["tray_no"] % 2 == 0 else 0, axis=1 )
+    #df["col_edge"] = df.apply( lambda x: 1 if x["pos_col"] == 1 or x["pos_col"] == 4 else 0, axis=1 )
+    #df["position"] = df.apply( lambda x: 1 if x["position"] % 2 == 0 else 0, axis=1 )
     #df["batch_cnt_event"] = df.apply( lambda x: 1 if x["batch_count_men"] % 2 == 0 else 0, axis=1 )
 
     #df["temp_all_sum_avg"] = ( df["temperature_1_sum"] + df["temperature_2_sum"] + df["temperature_3_sum"] ) / 3
     
     #for _col in log_cols:
     #    df[f"{_col}_max_min_diff"] = df[f"{_col}_max"] - df[f"{_col}_min"]
+
+    #df.drop( columns=["batch_count", ], inplace=True )
 
     return df
 
@@ -391,26 +384,33 @@ params = {
     "importance_type": "gain",
     "random_state": 42,
     "learning_rate": 0.02, # Default: 0.1
-    "num_leaves": 51, # Default: 31
-    "n_estimators": 780, # Default: 100
+    "num_leaves": 52, # Default: 31
+    "n_estimators": 850, # Default: 100
     "min_child_samples": 280, # Default: 20,
     #"min_child_weight": 0.1, # Default: 0.001 
+    #'subsample': 0.9046304961782754, # Deafault: 1.0 (0~1)
+    #'subsample_freq': 4, # Default: 0
+    #'reg_alpha': 1.1891647991566514, # Default: 0.0
+    #'reg_lambda': 1.6025630427886866, # Default: 0.0
     #"class_weight": "balanced", # Default: None 
 }
 
 '''
 params = {
+  'num_leaves': 31, 
+  'learning_rate': 0.05508630645991973, 
+  'n_estimators': 1176, 
+  'min_child_samples': 60, 
+  'subsample': 0.9046304961782754, 
+  'subsample_freq': 4, 
+  'colsample_bytree': 0.7035257576603995, 
+  'reg_alpha': 1.1891647991566514, 
+  'reg_lambda': 1.6025630427886866,
   'boosting_type': 'gbdt', 
   'objective': 'binary', 
-  'metric': 'auc',
-  "importance_type": "gain",
-  "random_state": 42,
-  'num_leaves': 46, 
-  'learning_rate': 0.028324668170574198, 
-  'n_estimators': 3154, 
-  'min_child_samples': 140
-  }
-'''
+  'metric': 'auc'
+}
+#'''
 
 # Training
 train_oof, imp, metrics = train_data ( 

@@ -404,12 +404,31 @@ params = {
 
 
 ==================== Param with base params ====================
--------------------- acc(best)=0.8750 --------------------
+-------------------- acc(best)=0.8786 --------------------
 {
-  'num_leaves': 46, 
-  'learning_rate': 0.028324668170574198, 
-  'n_estimators': 3154, 
-  'min_child_samples': 140
+  'num_leaves': 28, 
+  'learning_rate': 0.030607327337027833, 
+  'n_estimators': 1431, 
+  'min_child_samples': 390, 
+  'subsample': 0.8131715807930413, 
+  'subsample_freq': 0, 
+  'colsample_bytree': 0.8807115725983723, 
+  'reg_alpha': 0.03173487201264852, 
+  'reg_lambda': 0.02183018382012827
+}
+
+========================================
+-------------------- acc(best)=0.8790 --------------------
+{
+  'num_leaves': 31, 
+  'learning_rate': 0.05508630645991973, 
+  'n_estimators': 1176, 
+  'min_child_samples': 60, 
+  'subsample': 0.9046304961782754, 
+  'subsample_freq': 4, 
+  'colsample_bytree': 0.7035257576603995, 
+  'reg_alpha': 1.1891647991566514, 
+  'reg_lambda': 1.6025630427886866
 }
 
 

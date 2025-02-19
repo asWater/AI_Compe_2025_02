@@ -35,15 +35,18 @@ params_base = {
 def objective(trial):
     # 探索するハイパーパラメータ
     params_tuning = {
-        "num_leaves": trial.suggest_int("num_leaves", 8, 256),
-        "learning_rate": trial.suggest_float("learning_rate", 0.01, 0.1 ),
-        "n_estimators": trial.suggest_int("n_estimators", 100, 10000 ),
-        "min_child_samples": trial.suggest_int("min_child_samples", 5, 200),
+        "num_leaves": trial.suggest_int("num_leaves", 8, 256), # Default: 31
+        "learning_rate": trial.suggest_float("learning_rate", 0.01, 0.1 ), # Default: 0.1
+        "n_estimators": trial.suggest_int("n_estimators", 100, 2000 ), # Default: 100
+        "min_child_samples": trial.suggest_int("min_child_samples", 5, 500), # Default: 20
+        "subsample": trial.suggest_float("subsample", 0.1, 1.0), # Deafault: 1.0 (0~1)
+        "subsample_freq": trial.suggest_int("subsample_freq", 0, 7), # Default: 0
+        "colsample_bytree": trial.suggest_float("colsample_bytree", 0.1, 1.0), # Default: 1.0
         #"min_sum_hessian_in_leaf": trial.suggest_float("min_sum_hessian_in_leaf", 1e-5, 1e-2, log=True),
         #"feature_fraction": trial.suggest_float("feature_fraction", 0.5, 1.0),
         #"bagging_fraction": trial.suggest_float("bagging_fraction", 0.5, 1.0),
-        #"reg_alpha": trial.suggest_float("reg_alpha", 1e-2, 1e+2, log=True),
-        #"reg_lambda": trial.suggest_float("reg_lambda", 1e-2, 1e+2, log=True),
+        "reg_alpha": trial.suggest_float("reg_alpha", 0.0, 3), # Default: 0.0
+        "reg_lambda": trial.suggest_float("reg_lambda", 0.0, 3), # Default: 0.0
     }
     params_tuning.update(params_base)
     
