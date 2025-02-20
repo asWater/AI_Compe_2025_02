@@ -213,7 +213,8 @@ def predict(
 # FUNC: ope_chara
 #===================================================================================================
 def ope_chara(train_df, test_df, log_df):
-    log_col = [ 
+    log_col = [
+        #"datetime", 
         "maintenance_count",
         #"batch_count",
         "temperature_1", 
@@ -230,6 +231,18 @@ def ope_chara(train_df, test_df, log_df):
         #"min", 
         "median", 
         "first",
+        #"last",
+    ]
+
+    col_for_datetime = [
+        #"sum", 
+        #"mean", 
+        #"std", 
+        #"max", 
+        #"min", 
+        #"median", 
+        #"first",
+        "last",
     ]
 
     for _col in log_col:
@@ -253,6 +266,9 @@ def ope_chara(train_df, test_df, log_df):
         if _col == "pressure":
             log_stats = log_df.groupby(["line", "batch_count"])[_col].agg(stats_col).reset_index()
             log_stats.columns = ["line", "batch_count"] + [ f"{_col}_{_stat}" for _stat in stats_col ]
+        elif _col == "datetime":
+            log_stats = log_df.groupby(["line", "batch_count"])[_col].agg(col_for_datetime).reset_index()
+            log_stats.columns = ["line", "batch_count"] + [ f"{_col}_{_stat}" for _stat in col_for_datetime ]
         else:
             log_stats = log_df.groupby(["line", "batch_count"])[_col].agg("sum").reset_index()
             log_stats.columns = ["line", "batch_count", f"{_col}_sum"]
@@ -261,6 +277,10 @@ def ope_chara(train_df, test_df, log_df):
         # Merging datasets "train" and "logs_stats" by "line" and "batch_count"
         train_df = pd.merge(train_df, log_stats, on=["line", "batch_count"])
         test_df = pd.merge(test_df, log_stats, on=["line", "batch_count"])
+
+    datetime_cols = [col for col in train_df if col.startswith("datetime")]
+    train_df[datetime_cols] = train_df[datetime_cols].values.astype("float64")
+    test_df[datetime_cols] = test_df[datetime_cols].values.astype("float64")
 
     train_df = add_more_charas( train_df, log_col )
     test_df = add_more_charas( test_df, log_col )
@@ -279,33 +299,46 @@ def add_more_charas( df, log_cols):
     df["pos_col"] = df.apply( lambda x: get_col_num_matrix(MAX_SLOTS_IN_ROW, x["position"]), axis=1 )
     
     # +
-    #df["line_row"] = df["line"] + df["pos_row"]
-    #df["line_col"] = df["line"] + df["pos_col"]
-    #df["line_tray_row"] = df["line"] + df["pos_row"] + df["tray_no"]
-    #df["line_tray_col"] = df["line"] + df["pos_col"] + df["tray_no"]
-    #df["tray_row"] = df["tray_no"] + df["pos_row"]
-    #df["tray_col"] = df["tray_no"] + df["pos_col"]
+    #df["line_row_plus"] = df["line"] + df["pos_row"]
+    #df["line_col_plus"] = df["line"] + df["pos_col"]
+    #df["line_tray_row_plus"] = df["line"] + df["pos_row"] + df["tray_no"]
+    #df["line_tray_col_plus"] = df["line"] + df["pos_col"] + df["tray_no"]
+    #df["tray_row_plus"] = df["tray_no"] + df["pos_row"]
+    #df["tray_col_plus"] = df["tray_no"] + df["pos_col"]
 
     # X
     df["line_row"] = df["line"] * df["pos_row"]
     df["line_col"] = df["line"] * df["pos_col"]
     df["line_tray_row"] = df["line"] * df["pos_row"] * df["tray_no"]
     df["line_tray_col"] = df["line"] * df["pos_col"] * df["tray_no"]
+
+    #df["line_row"] = ( df["line"] * df["pos_row"] ) / 2
+    #df["line_col"] = ( df["line"] * df["pos_col"] ) / 2
+    #df["line_tray_row"] = ( df["line"] * df["pos_row"] * df["tray_no"] ) / 3
+    #df["line_tray_col"] = ( df["line"] * df["pos_col"] * df["tray_no"] ) / 3
+    
     #df["tray_row"] = df["tray_no"] * df["pos_row"]
     #df["tray_col"] = df["tray_no"] * df["pos_col"]
+    #df["line_batch_tray_row"] = df["line"] * df["batch_count_men"] * df["tray_no"] * df["pos_row"]
+    #df["line_batch_tray_col"] = df["line"] * df["batch_count_men"] * df["tray_no"] * df["pos_col"]
+    #df["batch_col"] = df["batch_count_men"] * df["pos_col"]
+    #df["batch_row"] = df["batch_count_men"] * df["pos_row"]
 
     df["line_tray"] = df["line"] * df["tray_no"]
     #df["row_x_col"] = df["pos_row"] * df["pos_col"]
+    #df["pos_x_col"] = df["position"] * df["pos_col"]
+    #df["pos_x_row"] = df["position"] * df["pos_row"]
 
     #df["press_median_first"] = df["pressure_median"] - df["pressure_first"]
 
     df["tray_no_even"] = df.apply( lambda x: 1 if x["tray_no"] % 2 == 0 else 0, axis=1 )
     #df["col_edge"] = df.apply( lambda x: 1 if x["pos_col"] == 1 or x["pos_col"] == 4 else 0, axis=1 )
-    #df["position"] = df.apply( lambda x: 1 if x["position"] % 2 == 0 else 0, axis=1 )
+    #df["position_even"] = df.apply( lambda x: 1 if x["position"] % 2 == 0 else 0, axis=1 )
     #df["batch_cnt_event"] = df.apply( lambda x: 1 if x["batch_count_men"] % 2 == 0 else 0, axis=1 )
 
-    #df["temp_all_sum_avg"] = ( df["temperature_1_sum"] + df["temperature_2_sum"] + df["temperature_3_sum"] ) / 3
-    
+    #df["temp_sum_press"] = (((df["temperature_1_sum"] + df["temperature_2_sum"] + df["temperature_3_sum"]) / 3 ) * df["pressure_median"]) / df["batch_count"]
+    #df["batch_press"] = df["batch_count_men"] * df["pressure_median"]
+
     #for _col in log_cols:
     #    df[f"{_col}_max_min_diff"] = df[f"{_col}_max"] - df[f"{_col}_min"]
 
@@ -330,6 +363,9 @@ def create_train_data():
     train = reduce_mem_usage(train)
     test = reduce_mem_usage(test)
     log = reduce_mem_usage(log)
+
+    # Converting the object to datetime type
+    log["datetime"] = pd.to_datetime(log["datetime"])
 
     # Predict with replacing "D" with 1
     label_dict = {"A": 0, "B": 0, "C": 0, "D": 1}
@@ -385,7 +421,7 @@ params = {
     "random_state": 42,
     "learning_rate": 0.02, # Default: 0.1
     "num_leaves": 52, # Default: 31
-    "n_estimators": 850, # Default: 100
+    "n_estimators": 840, # Default: 100
     "min_child_samples": 280, # Default: 20,
     #"min_child_weight": 0.1, # Default: 0.001 
     #'subsample': 0.9046304961782754, # Deafault: 1.0 (0~1)
