@@ -1,0 +1,9 @@
+[Compe Site]
+http://eboshi.asia.tel.com:5000/panadata
+
+
+[Panasonic Site]
+https://tech-ai.panasonic.com/jp/blog_page.html?id=20220805
+
+
+
